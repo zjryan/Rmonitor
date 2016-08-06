@@ -1,4 +1,5 @@
 import subprocess
+import time
 
 
 class Monitor(object):
@@ -16,17 +17,35 @@ class Memory(Monitor):
         self.free = memo_info['free']
 
 
-def result(cmd):
+class CPU(Monitor):
+    def __init__(self, cpu_info):
+        super(CPU, self).__init__()
+        self.min1 = cpu_info['min1']
+        self.min5 = cpu_info['min5']
+        self.min15 = cpu_info['min15']
+
+
+class Disk(Monitor):
+    def __init__(self, disk_info):
+        super(Disk, self).__init__()
+        self.tps = disk_info['tps']
+        self.read = disk_info['read']
+        self.write = disk_info['write']
+
+
+def cmd_result(cmd):
     ret = []
     pipe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     output_for_line = (line.decode('utf-8') for line in pipe.stdout)
     for o in output_for_line:
-        ret.append('{}'.format(o))
+        l = '{}'.format(o)
+        l = l.replace('\n', '').replace(',', '')
+        ret.append(l)
     return ret
 
 
 def free():
-    r = result('free')[1]
+    r = cmd_result('free')[1]
     full_info = r.split()
     memo_info = dict(
         total=full_info[1],
@@ -37,9 +56,52 @@ def free():
     return m
 
 
+def uptime():
+    r = cmd_result('uptime')[0]
+    full_info = r.split()
+    cpu_info = dict(
+        min1=full_info[7],
+        min5=full_info[8],
+        min15=full_info[9],
+    )
+    cpu = CPU(cpu_info)
+    return cpu
+
+
+def iostat():
+    r = cmd_result('iostat -d')[3]
+    full_info = r.split()
+    disk_info = dict(
+        tps=full_info[1],
+        read=full_info[2],
+        write=full_info[3]
+    )
+    d = Disk(disk_info)
+    return d
+
+
+def current_status():
+    memory = free()
+    disk = iostat()
+    cpu = uptime()
+    data = dict(
+        memory=memory,
+        disk=disk,
+        cpu=cpu,
+    )
+    print(data)
+
+
 def main():
-    free()
+    current_status()
+
+
+def monitor():
+    while True:
+        current_status()
+        time.sleep(2)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    monitor()
