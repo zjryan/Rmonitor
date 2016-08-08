@@ -89,11 +89,9 @@ def monitor():
     while True:
         d = gen.__next__()
         save_mongo(d)
-        print(status.find().count())
         gevent.sleep(2)
 
 
-g_monitor = gevent.spawn(monitor)
-g_remove = gevent.spawn(remove_outdated_mongo, STATUS_EXITS_TIME)
-g_monitor.join()
-g_remove.join()
+gevent.spawn(monitor)
+gevent.spawn(remove_outdated_mongo, STATUS_EXITS_TIME)
+

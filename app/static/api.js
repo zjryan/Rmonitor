@@ -28,15 +28,25 @@ chart.ajax = function (url, method, form, success, error) {
             error(r);
         }
     };
-    if (method === 'post ') {
+    if (method === 'post') {
         var data = JSON.stringify(form);
         request.data = data;
     }
     $.ajax(request);
 };
 
-bs.get = function (url, response) {
+chart.get = function (url, response) {
     var method = 'get';
     var form = {};
     this.ajax(url, method, form, response, response);
+};
+
+chart.post = function(url, form, success, error) {
+    var method = 'post';
+    this.ajax(url, method, form, success, error);
+};
+
+chart.serverStatus = function (form, success, error) {
+    var url = '/api/serverstatus';
+    this.post(url, form, success, error);
 };

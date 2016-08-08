@@ -8,15 +8,14 @@
     <script src="../static/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js"></script>
     <script>
-        var cpuData = function (/*labels, min1, min5, min10*/) {
-            var labelLength = 30;
+        var labelLength = 30;
+
+        var createCPUChart = function (min1, min5, min10) {
             var labels = new Array(labelLength);
-            for(var i = 0; i < 60; i++) {
-                labels[i] = i;
+            for(var i = 0; i < 30; i++) {
+                labels[i] = i*2;
             }
-            min1 = [2,6,4,6,2];
-            min5 = [7,3,2,6,7];
-            min10 = [2,7,8,2,5];
+
             var d = {
                 labels: labels,
                 datasets: [
@@ -55,7 +54,7 @@
                 animation: false,
                 scales: {
                     xAxes: [{
-                        display: false,
+                        display: true,
                     }],
                     yAxes: [{}]
                 }
@@ -66,14 +65,35 @@
                 data: d,
                 options: options
             };
-            return cpuLineChart
+            var ctx = $('#cpuChart').get(0);
+            var cpu = new Chart(ctx, cpuLineChart);
+        };
+
+        var updateChart = function () {
+            var form = {
+                'data_len': labelLength,
+            };
+            var success = function (r) {
+                if (r.success) {
+                    log('success');
+                    var min1 = r.data.cpu_min1;
+                    var min5 = r.data.cpu_min5;
+                    var min15 = r.data.cpu_min15;
+                    createCPUChart(min1, min5, min15);
+                } else {
+                    log('failed');
+                }
+            };
+            var error = function (err) {
+                log(err);
+            };
+            chart.serverStatus(form, success, error)
         };
 
         var __main = function () {
-            var cpuLineChart = cpuData();
-            var ctx = $('#cpuChart').get(0);
-{#            var ctx = document.getElementById("cpuChart");#}
-            var cpu = new Chart(ctx, cpuLineChart);
+            setInterval(function () {
+                updateChart();
+            }, 2000);
         };
 
         $(document).ready(function () {
