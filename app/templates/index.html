@@ -3,20 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <title>服务器性能监控</title>
+    <link href="../static/bootstrap.min.css" rel="stylesheet">
     <script src="../static/jquery.js"></script>
     <script src="../static/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js"></script>
     <script>
+        var cpuData = function (/*labels, min1, min5, min10*/) {
+            var labelLength = 30;
+            var labels = new Array(labelLength);
+            for(var i = 0; i < 60; i++) {
+                labels[i] = i;
+            }
+            min1 = [2,6,4,6,2];
+            min5 = [7,3,2,6,7];
+            min10 = [2,7,8,2,5];
+            var d = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "cpu 1min平均负载",
+                        data: min1,
+                        backgroundColor: "rgba(151,187,205,0.2)",
+                        borderColor: "rgba(151,187,205,1)",
+                        pointBorderColor: "rgba(151,187,205,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    },
+                    {
+                        label: "cpu 5min平均负载",
+                        data: min5,
+                        backgroundColor: "rgba(151,227,205,0.3)",
+                        borderColor: "rgba(151,227,205,1)",
+                        pointBorderColor: "rgba(151,227,205,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    },
+                    {
+                        label: "cpu 10min平均负载",
+                        data: min10,
+                        backgroundColor: "rgba(220,220,220,0.4)",
+                        borderColor: "rgba(220,220,220,1)",
+                        pointBorderColor: "rgba(220,220,220,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    }
+                ]
+            };
 
+            var options = {
+                responsive: false,
+                animation: false,
+                scales: {
+                    xAxes: [{
+                        display: false,
+                    }],
+                    yAxes: [{}]
+                }
+            };
+
+            var cpuLineChart = {
+                type: 'line',
+                data: d,
+                options: options
+            };
+            return cpuLineChart
+        };
+
+        var __main = function () {
+            var cpuLineChart = cpuData();
+            var ctx = $('#cpuChart').get(0);
+{#            var ctx = document.getElementById("cpuChart");#}
+            var cpu = new Chart(ctx, cpuLineChart);
+        };
+
+        $(document).ready(function () {
+            __main();
+        });
     </script>
 </head>
 <body>
-    <h1>服务器信息</h1>
-    <div id="div1" style="float:left">
-        <canvas id="cpuChart" width="600" height="600"></canvas>
-    </div>
-    <div id="div2" style="float:left">
-        <canvas id="memChart" width="600" height="600"></canvas>
+    <div class="container">
+        <h1>服务器信息</h1>
+        <canvas id="cpuChart" width="500" height="500"></canvas>
     </div>
 </body>
 </html>

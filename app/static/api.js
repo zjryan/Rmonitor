@@ -14,10 +14,9 @@ chart.ajax = function (url, method, form, success, error) {
     var request = {
         url: url,
         type: method,
-        data: data,
         contentType: 'application/json',
         success: function (r) {
-            log('success, ', method, url);
+            log('success,', method, url);
             success(r)
         },
         error: function (err) {
@@ -29,7 +28,7 @@ chart.ajax = function (url, method, form, success, error) {
             error(r);
         }
     };
-    if (method === 'post') {
+    if (method === 'post ') {
         var data = JSON.stringify(form);
         request.data = data;
     }

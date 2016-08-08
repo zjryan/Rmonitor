@@ -6,3 +6,4 @@ app.secret_key = 'random-string'
 
 
 from . import views
+from . import monitor

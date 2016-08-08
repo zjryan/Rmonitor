@@ -1,36 +1,17 @@
 import subprocess
 import time
+import gevent
+from pymongo import MongoClient
 
 
-class Monitor(object):
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        properties = (u'\t{0} = {1}'.format(k, v) for k, v in self.__dict__.items())
-        return u'\n<\n{0}:\n  {1}\n>'.format(class_name, '\n    '.join(properties))
+# seconds - mongodb 数据库服务器性能数据存在时长 (单位：秒)
+STATUS_EXITS_TIME = 60*60
 
 
-class Memory(Monitor):
-    def __init__(self, memo_info):
-        super(Memory, self).__init__()
-        self.total = memo_info['total']
-        self.used = memo_info['used']
-        self.free = memo_info['free']
-
-
-class CPU(Monitor):
-    def __init__(self, cpu_info):
-        super(CPU, self).__init__()
-        self.min1 = cpu_info['min1']
-        self.min5 = cpu_info['min5']
-        self.min15 = cpu_info['min15']
-
-
-class Disk(Monitor):
-    def __init__(self, disk_info):
-        super(Disk, self).__init__()
-        self.tps = disk_info['tps']
-        self.read = disk_info['read']
-        self.write = disk_info['write']
+client = MongoClient()
+db = client.monitor
+# collection
+status = db.status
 
 
 def cmd_result(cmd):
@@ -52,8 +33,7 @@ def free():
         used=full_info[2],
         free=full_info[3],
     )
-    m = Memory(memo_info)
-    return m
+    return memo_info
 
 
 def uptime():
@@ -64,8 +44,7 @@ def uptime():
         min5=full_info[8],
         min15=full_info[9],
     )
-    cpu = CPU(cpu_info)
-    return cpu
+    return cpu_info
 
 
 def iostat():
@@ -76,32 +55,45 @@ def iostat():
         read=full_info[2],
         write=full_info[3]
     )
-    d = Disk(disk_info)
-    return d
+    return disk_info
 
 
 def current_status():
-    memory = free()
-    disk = iostat()
-    cpu = uptime()
-    data = dict(
-        memory=memory,
-        disk=disk,
-        cpu=cpu,
-    )
-    print(data)
+    while True:
+        memory = free()
+        disk = iostat()
+        cpu = uptime()
+        data = dict(
+            memory=memory,
+            disk=disk,
+            cpu=cpu,
+            created_time=time.time()
+        )
+        yield data
 
 
-def main():
-    current_status()
+def save_mongo(data):
+    status.insert_one(data)
+
+
+def remove_outdated_mongo(s):
+    while True:
+        current_time = time.time()
+        limit_time = current_time - s
+        status.remove({'created_time': {'$lt': limit_time}})
+        gevent.sleep(s)
 
 
 def monitor():
+    gen = current_status()
     while True:
-        current_status()
-        time.sleep(2)
+        d = gen.__next__()
+        save_mongo(d)
+        print(status.find().count())
+        gevent.sleep(2)
 
 
-if __name__ == '__main__':
-    # main()
-    monitor()
+g_monitor = gevent.spawn(monitor)
+g_remove = gevent.spawn(remove_outdated_mongo, STATUS_EXITS_TIME)
+g_monitor.join()
+g_remove.join()
