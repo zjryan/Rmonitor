@@ -9,8 +9,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js"></script>
     <script>
         var labelLength = 30;
+        var cpuChart;
 
-        var createCPUChart = function (min1, min5, min10) {
+        var createCPUChart = function (min1, min5, min15) {
             var labels = new Array(labelLength);
             for(var i = 0; i < 30; i++) {
                 labels[i] = i*2;
@@ -20,29 +21,29 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: "cpu 1min平均负载",
+                        label: "1分钟平均负载",
                         data: min1,
-                        backgroundColor: "rgba(151,187,205,0.2)",
-                        borderColor: "rgba(151,187,205,1)",
-                        pointBorderColor: "rgba(151,187,205,1)",
+                        backgroundColor: "rgba(135,206,250,0.2)",
+                        borderColor: "rgba(135,206,250,1)",
+                        pointBorderColor: "rgba(135,206,250,1)",
                         pointBackgroundColor: "#fff",
                         pointBorderWidth: 2,
                     },
                     {
-                        label: "cpu 5min平均负载",
+                        label: "5分钟平均负载",
                         data: min5,
-                        backgroundColor: "rgba(151,227,205,0.3)",
-                        borderColor: "rgba(151,227,205,1)",
-                        pointBorderColor: "rgba(151,227,205,1)",
+                        backgroundColor: "rgba(153,204,255,0.3)",
+                        borderColor: "rgba(153,204,255,1)",
+                        pointBorderColor: "rgba(153,204,255,1)",
                         pointBackgroundColor: "#fff",
                         pointBorderWidth: 2,
                     },
                     {
-                        label: "cpu 10min平均负载",
-                        data: min10,
-                        backgroundColor: "rgba(220,220,220,0.4)",
-                        borderColor: "rgba(220,220,220,1)",
-                        pointBorderColor: "rgba(220,220,220,1)",
+                        label: "15分钟平均负载",
+                        data: min15,
+                        backgroundColor: "rgba(200,200,200,0.4)",
+                        borderColor: "rgba(200,200,200,1)",
+                        pointBorderColor: "rgba(200,200,200,1)",
                         pointBackgroundColor: "#fff",
                         pointBorderWidth: 2,
                     }
@@ -51,10 +52,10 @@
 
             var options = {
                 responsive: false,
-                animation: false,
+                animation : false,
                 scales: {
                     xAxes: [{
-                        display: true,
+                        display: false
                     }],
                     yAxes: [{}]
                 }
@@ -66,10 +67,21 @@
                 options: options
             };
             var ctx = $('#cpuChart').get(0);
-            var cpu = new Chart(ctx, cpuLineChart);
+            cpuChart = new Chart(ctx, cpuLineChart);
         };
 
-        var updateChart = function () {
+        var updateCPUChart = function (min1, min5, min15) {
+            var cpuData = cpuChart.data;
+            var datasetMin1 = cpuData.datasets[0];
+            var datasetMin5 = cpuData.datasets[1];
+            var datasetMin15 = cpuData.datasets[2];
+            datasetMin1.data = min1;
+            datasetMin5.data = min5;
+            datasetMin15.data = min15;
+            cpuChart.update();
+        };
+
+        var createChart = function () {
             var form = {
                 'data_len': labelLength,
             };
@@ -90,7 +102,29 @@
             chart.serverStatus(form, success, error)
         };
 
+        var updateChart = function () {
+            var form = {
+                'data_len': labelLength,
+            };
+            var success = function (r) {
+                if (r.success) {
+                    log('success');
+                    var min1 = r.data.cpu_min1;
+                    var min5 = r.data.cpu_min5;
+                    var min15 = r.data.cpu_min15;
+                    updateCPUChart(min1, min5, min15);
+                } else {
+                    log('failed');
+                }
+            };
+            var error = function (err) {
+                log(err);
+            };
+            chart.serverStatus(form, success, error)
+        };
+
         var __main = function () {
+            createChart();
             setInterval(function () {
                 updateChart();
             }, 2000);
@@ -104,7 +138,10 @@
 <body>
     <div class="container">
         <h1>服务器信息</h1>
-        <canvas id="cpuChart" width="500" height="500"></canvas>
+        <h3>CPU</h3>
+        <canvas id="cpuChart" width="800" height="400"></canvas>
+        <h3>Memory</h3>
+        <canvas id="memoryChart" width="800" height="400"></canvas>
     </div>
 </body>
 </html>

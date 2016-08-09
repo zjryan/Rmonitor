@@ -40,9 +40,9 @@ def uptime():
     r = cmd_result('uptime')[0]
     full_info = r.split()
     cpu_info = dict(
-        min1=full_info[7],
-        min5=full_info[8],
-        min15=full_info[9],
+        min1=full_info[-3],
+        min5=full_info[-2],
+        min15=full_info[-1],
     )
     return cpu_info
 

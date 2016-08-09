@@ -35,4 +35,5 @@ def server_status():
         'success': True,
         'data': data,
     }
+    print(r)
     return jsonify(r)
