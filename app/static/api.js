@@ -47,6 +47,6 @@ chart.post = function(url, form, success, error) {
 };
 
 chart.serverStatus = function (form, success, error) {
-    var url = '/api/serverstatus';
+    var url = '/api/status';
     this.post(url, form, success, error);
 };

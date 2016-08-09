@@ -11,7 +11,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/api/serverstatus', methods=['POST'])
+@app.route('/api/status', methods=['POST'])
 def server_status():
     form = request.get_json()
     data_len = form.get('data_len')
@@ -19,21 +19,33 @@ def server_status():
     cpu_min1 = []
     cpu_min5 = []
     cpu_min15 = []
+    disk_read = []
+    disk_write = []
+    memory_used = []
     for i in range(0, data_len):
         elem = s[i]
         cpu = elem['cpu']
         cpu_min1.append(cpu['min1'])
         cpu_min5.append(cpu['min5'])
         cpu_min15.append(cpu['min15'])
+        disk = elem['disk']
+        disk_read.append(disk['read'])
+        disk_write.append(disk['write'])
+        memory = elem['memory']
+        memo_used_data = int(memory['used']) / 1000 / 1000
+        memory_used.append(memo_used_data)
+
 
     data = dict(
         cpu_min1=cpu_min1,
         cpu_min5=cpu_min5,
         cpu_min15=cpu_min15,
+        disk_write=disk_write,
+        disk_read=disk_read,
+        memory_used=memory_used,
     )
     r = {
         'success': True,
         'data': data,
     }
-    print(r)
     return jsonify(r)

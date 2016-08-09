@@ -2,21 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>服务器性能监控</title>
+    <title>服务器信息</title>
     <link href="../static/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/style.css" rel="stylesheet">
     <script src="../static/jquery.js"></script>
     <script src="../static/api.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.js"></script>
     <script>
         var labelLength = 30;
+        var labels = new Array(labelLength);
+        for(var i = 0; i < 30; i++) {
+            labels[i] = i*2;
+        }
+
         var cpuChart;
+        var diskChart;
+        var memoryChart;
+
+        var createMemoryChart = function (used) {
+            var d = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "已使用的内存(GB)",
+                        data: used,
+                        backgroundColor: "rgba(34,139,34,0.2)",
+                        borderColor: "rgba(34,139,34,1)",
+                        pointBorderColor: "rgba(34,139,34,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    }
+                ]
+            };
+
+            var options = {
+                responsive: false,
+                animation : false,
+                scales: {
+                    xAxes: [{
+                        display: false
+                    }],
+                    yAxes: [{}]
+                }
+            };
+
+            var memoryLineChart = {
+                type: 'line',
+                data: d,
+                options: options
+            };
+            var ctx = $('#memoryChart').get(0);
+            memoryChart = new Chart(ctx, memoryLineChart);
+        };
+
+        var updateMemoryChart = function (used) {
+            var memoryData = memoryChart.data;
+            var datasetUsed = memoryData.datasets[0];
+            datasetUsed.data = used;
+            memoryChart.update();
+        };
+
+        var createDiskChart = function (read, write) {
+            var d = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "硬盘读速度(KB/s)",
+                        data: read,
+                        backgroundColor: "rgba(218,112,214,0.2)",
+                        borderColor: "rgba(218,112,214,1)",
+                        pointBorderColor: "rgba(218,112,214,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    },
+                    {
+                        label: "硬盘写速度(KB/s)",
+                        data: write,
+                        backgroundColor: "rgba(255,20,147,0.2)",
+                        borderColor: "rgba(255,20,147,1)",
+                        pointBorderColor: "rgba(255,20,147,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 2,
+                    }
+                ]
+            };
+
+            var options = {
+                responsive: false,
+                animation : false,
+                scales: {
+                    xAxes: [{
+                        display: false
+                    }],
+                    yAxes: [{}]
+                }
+            };
+
+            var diskLineChart = {
+                type: 'line',
+                data: d,
+                options: options
+            };
+            var ctx = $('#diskChart').get(0);
+            diskChart = new Chart(ctx, diskLineChart);
+        };
+
+        var updateDiskChart = function (read, write) {
+            var diskData = diskChart.data;
+            var datasetRead = diskData.datasets[0];
+            var datasetWrite = diskData.datasets[1];
+            datasetRead.data = read;
+            datasetWrite.data = write;
+            diskChart.update();
+        };
 
         var createCPUChart = function (min1, min5, min15) {
-            var labels = new Array(labelLength);
-            for(var i = 0; i < 30; i++) {
-                labels[i] = i*2;
-            }
-
             var d = {
                 labels: labels,
                 datasets: [
@@ -91,7 +191,12 @@
                     var min1 = r.data.cpu_min1;
                     var min5 = r.data.cpu_min5;
                     var min15 = r.data.cpu_min15;
+                    var read = r.data.disk_read;
+                    var write = r.data.disk_write;
+                    var used = r.data.memory_used;
                     createCPUChart(min1, min5, min15);
+                    createDiskChart(read, write);
+                    createMemoryChart(used);
                 } else {
                     log('failed');
                 }
@@ -112,7 +217,12 @@
                     var min1 = r.data.cpu_min1;
                     var min5 = r.data.cpu_min5;
                     var min15 = r.data.cpu_min15;
+                    var read = r.data.disk_read;
+                    var write = r.data.disk_write;
+                    var used = r.data.memory_used;
                     updateCPUChart(min1, min5, min15);
+                    updateDiskChart(read, write);
+                    updateMemoryChart(used);
                 } else {
                     log('failed');
                 }
@@ -137,11 +247,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>服务器信息</h1>
-        <h3>CPU</h3>
-        <canvas id="cpuChart" width="800" height="400"></canvas>
-        <h3>Memory</h3>
-        <canvas id="memoryChart" width="800" height="400"></canvas>
+        <div class="chart-container">
+            <h1>服务器信息</h1>
+            <div class="chart-item">
+                <h3>CPU</h3>
+                <canvas id="cpuChart" width="800" height="250"></canvas>
+            </div>
+            <div class="chart-item">
+                <h3>Disk</h3>
+                <canvas id="diskChart" width="800" height="250"></canvas>
+            </div>
+            <div class="chart-item">
+                <h3>Memory</h3>
+                <canvas id="memoryChart" width="800" height="250"></canvas>
+            </div>
+        </div>
     </div>
 </body>
 </html>
