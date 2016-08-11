@@ -3,7 +3,7 @@ from .monitor import status
 from flask import render_template
 from flask import request
 from flask import jsonify
-from pymongo import DESCENDING
+from pymongo import ASCENDING
 
 
 @app.route('/')
@@ -15,7 +15,7 @@ def index():
 def server_status():
     form = request.get_json()
     data_len = form.get('data_len')
-    s = list(status.find().sort("created_time", DESCENDING).limit(data_len))
+    s = list(status.find().sort("created_time", ASCENDING).limit(data_len))
     cpu_min1 = []
     cpu_min5 = []
     cpu_min15 = []
