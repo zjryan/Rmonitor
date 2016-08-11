@@ -62,28 +62,19 @@
             memoryChart.update();
         };
 
-        var createDiskChart = function (read, write) {
+        var createDiskChart = function (tps) {
             var d = {
                 labels: labels,
                 datasets: [
                     {
-                        label: "硬盘读速度(KB/s)",
-                        data: read,
+                        label: "每秒I/O请求传送数",
+                        data: tps,
                         backgroundColor: "rgba(218,112,214,0.2)",
                         borderColor: "rgba(218,112,214,1)",
                         pointBorderColor: "rgba(218,112,214,1)",
                         pointBackgroundColor: "#fff",
                         pointBorderWidth: 2,
                     },
-                    {
-                        label: "硬盘写速度(KB/s)",
-                        data: write,
-                        backgroundColor: "rgba(255,20,147,0.2)",
-                        borderColor: "rgba(255,20,147,1)",
-                        pointBorderColor: "rgba(255,20,147,1)",
-                        pointBackgroundColor: "#fff",
-                        pointBorderWidth: 2,
-                    }
                 ]
             };
 
@@ -107,12 +98,10 @@
             diskChart = new Chart(ctx, diskLineChart);
         };
 
-        var updateDiskChart = function (read, write) {
+        var updateDiskChart = function (tps) {
             var diskData = diskChart.data;
-            var datasetRead = diskData.datasets[0];
-            var datasetWrite = diskData.datasets[1];
-            datasetRead.data = read;
-            datasetWrite.data = write;
+            var datasetTPS = diskData.datasets[0];
+            datasetTPS.data = tps;
             diskChart.update();
         };
 
@@ -191,11 +180,10 @@
                     var min1 = r.data.cpu_min1;
                     var min5 = r.data.cpu_min5;
                     var min15 = r.data.cpu_min15;
-                    var read = r.data.disk_read;
-                    var write = r.data.disk_write;
+                    var tps = r.data.disk_tps;
                     var used = r.data.memory_used;
                     createCPUChart(min1, min5, min15);
-                    createDiskChart(read, write);
+                    createDiskChart(tps);
                     createMemoryChart(used);
                 } else {
                     log('failed');
@@ -217,11 +205,10 @@
                     var min1 = r.data.cpu_min1;
                     var min5 = r.data.cpu_min5;
                     var min15 = r.data.cpu_min15;
-                    var read = r.data.disk_read;
-                    var write = r.data.disk_write;
+                    var tps = r.data.disk_tps;
                     var used = r.data.memory_used;
                     updateCPUChart(min1, min5, min15);
-                    updateDiskChart(read, write);
+                    updateDiskChart(tps);
                     updateMemoryChart(used);
                 } else {
                     log('failed');

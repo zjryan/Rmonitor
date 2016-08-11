@@ -3,7 +3,7 @@ from .monitor import status
 from flask import render_template
 from flask import request
 from flask import jsonify
-from pymongo import ASCENDING
+from pymongo import DESCENDING
 
 
 @app.route('/')
@@ -15,10 +15,12 @@ def index():
 def server_status():
     form = request.get_json()
     data_len = form.get('data_len')
-    s = list(status.find().sort("created_time", ASCENDING).limit(data_len))
+    s = list(status.find().sort("created_time", DESCENDING).limit(data_len))
+    s.reverse()
     cpu_min1 = []
     cpu_min5 = []
     cpu_min15 = []
+    disk_tps = []
     disk_read = []
     disk_write = []
     memory_used = []
@@ -29,19 +31,19 @@ def server_status():
         cpu_min5.append(cpu['min5'])
         cpu_min15.append(cpu['min15'])
         disk = elem['disk']
+        disk_tps.append(disk['tps'])
         disk_read.append(disk['read'])
         disk_write.append(disk['write'])
         memory = elem['memory']
         memo_used_data = int(memory['used']) / 1000 / 1000
         memory_used.append(memo_used_data)
-
+        ct = elem['created_time']
 
     data = dict(
         cpu_min1=cpu_min1,
         cpu_min5=cpu_min5,
         cpu_min15=cpu_min15,
-        disk_write=disk_write,
-        disk_read=disk_read,
+        disk_tps=disk_tps,
         memory_used=memory_used,
     )
     r = {
